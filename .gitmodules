@@ -1,6 +1,8 @@
 [submodule "backend"]
 	path = backend
-	url = git@github.com:Monczak/CloudTicTacToe-Backend.git
+	url = git@github.com:Monczak/cloudtictactoe-backend.git
+	branch = main
 [submodule "frontend"]
 	path = frontend
-	url = git@github.com:Monczak/CloudTicTacToe-Frontend.git
+	url = git@github.com:Monczak/cloudtictactoe-frontend.git
+	branch = main
