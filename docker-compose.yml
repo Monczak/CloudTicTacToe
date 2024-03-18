@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+  frontend:
+    build: ./frontend
+    networks:
+      - nginx-net
+
+  backend:
+    build: ./backend
+    networks:
+      - nginx-net
+
+  web:
+    build: ./nginx
+    ports:
+      - "8080:80"
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - nginx-net
+
+networks:
+  nginx-net:
