@@ -52,7 +52,7 @@ resource "aws_instance" "cloudtictactoe_server" {
   instance_type          = "t2.micro"
   vpc_security_group_ids = [aws_security_group.cloudtictactoe_server_sg.id]
 
-  user_data = file("setup-ec2.sh")
+  user_data = "${file("setup-ec2.sh")}"
 
   tags = {
     Name = "Cloud Tic Tac Toe Instance"
