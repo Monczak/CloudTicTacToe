@@ -11,4 +11,4 @@ sudo chmod +x /usr/local/bin/docker-compose
 
 git clone --recurse-submodules https://github.com/Monczak/cloudtictactoe ~/cloudtictactoe
 cd ~/cloudtictactoe
-sudo /usr/local/bin/docker-compose up -d # Should't need to use sudo here
+sudo /usr/local/bin/docker-compose up -d # Shouldn't need to use sudo here
