@@ -3,6 +3,8 @@ version: '3'
 services:
   frontend:
     build: ./frontend
+    depends_on:
+      - backend
     networks:
       - nginx-net
 
