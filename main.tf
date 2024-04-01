@@ -18,14 +18,57 @@ data "aws_vpc" "default" {
 }
 
 data "template_file" "setup-ec2-script" {
-    template = "${file("setup-ec2.sh")}"
+  template = file("setup-ec2.sh")
 }
 
+resource "aws_vpc" "cloudtictactoe_server_vpc" {
+  cidr_block           = "10.0.0.0/16"
+  enable_dns_hostnames = true
+
+  tags = {
+    Name = "Cloud Tic Tac Toe VPC"
+  }
+}
+
+resource "aws_subnet" "cloudtictactoe_server_subnet1" {
+  vpc_id     = aws_vpc.cloudtictactoe_server_vpc.id
+  cidr_block = "10.0.1.0/24"
+
+  tags = {
+    Name = "Cloud Tic Tac Toe Subnet 1"
+  }
+}
+
+resource "aws_internet_gateway" "cloudtictactoe_server_gw" {
+  vpc_id = aws_vpc.cloudtictactoe_server_vpc.id
+
+  tags = {
+    Name = "Cloud Tic Tac Toe Internet Gateway"
+  }
+}
+
+resource "aws_route_table" "cloudtictactoe_server_rt" {
+  vpc_id = aws_vpc.cloudtictactoe_server_vpc.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.cloudtictactoe_server_gw.id
+  }
+
+  tags = {
+    Name = "Cloud Tic Tac Toe Route Table"
+  }
+}
+
+resource "aws_route_table_association" "cloudtictactoe_server_rta" {
+  subnet_id      = aws_subnet.cloudtictactoe_server_subnet1.id
+  route_table_id = aws_route_table.cloudtictactoe_server_rt.id
+}
 
 resource "aws_security_group" "cloudtictactoe_server_sg" {
   name        = "cloudtictactoe-server-sg"
-  description = "Allows HTTP to web server"
-  vpc_id      = data.aws_vpc.default.id
+  description = "Allows HTTP and SSH to web server"
+  vpc_id      = aws_vpc.cloudtictactoe_server_vpc.id
 
   ingress {
     description = "HTTP ingress"
@@ -49,16 +92,22 @@ resource "aws_security_group" "cloudtictactoe_server_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  tags = {
+    Name = "Cloud Tic Tac Toe Security Group"
+  }
 }
 
 resource "aws_instance" "cloudtictactoe_server" {
-  ami                    = "ami-0c101f26f147fa7fd" # Amazon Linux 2023 on us-east-1
-  instance_type          = "t2.micro"
-  vpc_security_group_ids = [aws_security_group.cloudtictactoe_server_sg.id]
+  ami                         = "ami-0c101f26f147fa7fd" # Amazon Linux 2023 on us-east-1
+  instance_type               = "t2.micro"
+  subnet_id                   = aws_subnet.cloudtictactoe_server_subnet1.id
+  vpc_security_group_ids      = [aws_security_group.cloudtictactoe_server_sg.id]
+  associate_public_ip_address = true
 
-  user_data = "${data.template_file.setup-ec2-script.rendered}"
+  user_data = data.template_file.setup-ec2-script.rendered
 
   tags = {
-    Name = "Cloud Tic Tac Toe Instance"
+    Name = "Cloud Tic Tac Toe Server Instance"
   }
 }
