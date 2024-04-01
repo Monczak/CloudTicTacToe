@@ -17,6 +17,10 @@ data "aws_vpc" "default" {
   default = true
 }
 
+data "template_file" "setup-ec2-script" {
+    template = "${file("setup-ec2.sh")}"
+}
+
 
 resource "aws_security_group" "cloudtictactoe_server_sg" {
   name        = "cloudtictactoe-server-sg"
@@ -52,7 +56,7 @@ resource "aws_instance" "cloudtictactoe_server" {
   instance_type          = "t2.micro"
   vpc_security_group_ids = [aws_security_group.cloudtictactoe_server_sg.id]
 
-  user_data = "${file("setup-ec2.sh")}"
+  user_data = "${data.template_file.setup-ec2-script.rendered}"
 
   tags = {
     Name = "Cloud Tic Tac Toe Instance"
