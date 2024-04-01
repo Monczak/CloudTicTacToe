@@ -1,7 +1,7 @@
 #!/bin/bash
 
-sudo apt update -y
-sudo apt install -y docker
+sudo yum update -y
+sudo yum install -y docker
 
 sudo systemctl enable docker
 sudo systemctl start docker
@@ -11,6 +11,4 @@ sudo chmod +x /usr/local/bin/docker-compose
 
 git clone --recurse-submodules https://github.com/Monczak/cloudtictactoe ~/cloudtictactoe
 cd ~/cloudtictactoe
-git submodule update --init --recursive --remote
-
-/usr/local/bin/docker-compose up -d
+sudo /usr/local/bin/docker-compose up -d # Should't need to use sudo here
