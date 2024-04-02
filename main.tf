@@ -65,9 +65,9 @@ resource "aws_route_table_association" "cloudtictactoe_server_rta" {
   route_table_id = aws_route_table.cloudtictactoe_server_rt.id
 }
 
-resource "aws_security_group" "cloudtictactoe_server_sg" {
-  name        = "cloudtictactoe-server-sg"
-  description = "Allows HTTP and SSH to web server"
+resource "aws_security_group" "cloudtictactoe_server_sg_http" {
+  name        = "cloudtictactoe-server-sg-http"
+  description = "Allows HTTP to web server"
   vpc_id      = aws_vpc.cloudtictactoe_server_vpc.id
 
   ingress {
@@ -77,6 +77,23 @@ resource "aws_security_group" "cloudtictactoe_server_sg" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "Cloud Tic Tac Toe HTTP Security Group"
+  }
+}
+
+resource "aws_security_group" "cloudtictactoe_server_sg_ssh" {
+  name        = "cloudtictactoe-server-sg-ssh"
+  description = "Allows SSH to web server"
+  vpc_id      = aws_vpc.cloudtictactoe_server_vpc.id
 
   ingress {
     description = "SSH ingress"
@@ -94,15 +111,18 @@ resource "aws_security_group" "cloudtictactoe_server_sg" {
   }
 
   tags = {
-    Name = "Cloud Tic Tac Toe Security Group"
+    Name = "Cloud Tic Tac Toe SSH Security Group"
   }
 }
 
 resource "aws_instance" "cloudtictactoe_server" {
-  ami                         = "ami-0c101f26f147fa7fd" # Amazon Linux 2023 on us-east-1
-  instance_type               = "t2.micro"
-  subnet_id                   = aws_subnet.cloudtictactoe_server_subnet1.id
-  vpc_security_group_ids      = [aws_security_group.cloudtictactoe_server_sg.id]
+  ami           = "ami-0c101f26f147fa7fd" # Amazon Linux 2023 on us-east-1
+  instance_type = "t2.micro"
+  subnet_id     = aws_subnet.cloudtictactoe_server_subnet1.id
+  vpc_security_group_ids = [
+    aws_security_group.cloudtictactoe_server_sg_http.id,
+    aws_security_group.cloudtictactoe_server_sg_ssh.id
+  ]
   associate_public_ip_address = true
 
   user_data = data.template_file.setup-ec2-script.rendered
