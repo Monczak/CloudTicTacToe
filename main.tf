@@ -13,10 +13,6 @@ provider "aws" {
   region = "us-east-1"
 }
 
-data "aws_vpc" "default" {
-  default = true
-}
-
 data "template_file" "setup-ec2-script" {
   template = file("setup-ec2.sh")
 }

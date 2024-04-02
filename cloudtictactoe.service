@@ -1,0 +1,9 @@
+[Unit]
+Description=Start Cloud Tic Tac Toe
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/docker-compose -f /cloudtictactoe/docker-compose.yml up -d
+
+[Install]
+WantedBy=multi-user.target
