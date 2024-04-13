@@ -1,8 +1,9 @@
-version: '3'
+version: '3.8'
 
 services:
   frontend:
     build: ./frontend
+    image: monczak/cloudtictactoe-frontend:latest
     depends_on:
       - backend
     networks:
@@ -10,11 +11,13 @@ services:
 
   backend:
     build: ./backend
+    image: monczak/cloudtictactoe-backend:latest
     networks:
       - nginx-net
 
   web:
     build: ./nginx
+    image: monczak/cloudtictactoe-web:latest
     ports:
       - "80:80"
     depends_on:

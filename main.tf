@@ -13,10 +13,6 @@ provider "aws" {
   region = "us-east-1"
 }
 
-data "template_file" "setup-ec2-script" {
-  template = file("setup-ec2.sh")
-}
-
 resource "aws_vpc" "cloudtictactoe_server_vpc" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_hostnames = true
@@ -111,19 +107,91 @@ resource "aws_security_group" "cloudtictactoe_server_sg_ssh" {
   }
 }
 
-resource "aws_instance" "cloudtictactoe_server" {
-  ami           = "ami-0c101f26f147fa7fd" # Amazon Linux 2023 on us-east-1
-  instance_type = "t2.micro"
-  subnet_id     = aws_subnet.cloudtictactoe_server_subnet1.id
-  vpc_security_group_ids = [
-    aws_security_group.cloudtictactoe_server_sg_http.id,
-    aws_security_group.cloudtictactoe_server_sg_ssh.id
-  ]
-  associate_public_ip_address = true
-
-  user_data = data.template_file.setup-ec2-script.rendered
-
+resource "aws_s3_bucket" "cloudtictactoe_server_bucket" {
+  bucket = "cloudtictactoe-bucket-1"
+  
   tags = {
-    Name = "Cloud Tic Tac Toe Server Instance"
+    Name = "Cloud Tic Tac Toe S3 Bucket"
+  }
+}
+
+resource "aws_s3_object" "cloudtictactoe_server_source_bundle" {
+  bucket = aws_s3_bucket.cloudtictactoe_server_bucket.id
+  key = "source-bundle.zip"
+  source = "source-bundle.zip"
+  etag = filemd5("source-bundle.zip")
+}
+
+resource "aws_elastic_beanstalk_application" "cloudtictactoe_app" {
+  name = "Cloud Tic Tac Toe"
+  description = "Cloud Tic Tac Toe Application"
+}
+
+resource "aws_elastic_beanstalk_application_version" "cloudtictactoe_app_version" {
+  name = "v1.0.0"
+  application = aws_elastic_beanstalk_application.cloudtictactoe_app.name
+  description = "Cloud Tic Tac Toe Application Version 1.0.0"
+  bucket = aws_s3_bucket.cloudtictactoe_server_bucket.id
+  key = aws_s3_object.cloudtictactoe_server_source_bundle.id
+}
+
+resource "aws_elastic_beanstalk_environment" "cloudtictactoe_env" {
+  name = "CloudTicTacToe-env"
+  application = aws_elastic_beanstalk_application.cloudtictactoe_app.name
+  version_label = aws_elastic_beanstalk_application_version.cloudtictactoe_app_version.name
+  solution_stack_name = "64bit Amazon Linux 2 v3.8.0 running Docker"
+
+  setting {
+    namespace = "aws:autoscaling:launchconfiguration"
+    name = "IamInstanceProfile"
+    value = "LabInstanceProfile"
+  }
+
+  setting {
+    namespace = "aws:ec2:vpc"
+    name = "VPCId"
+    value = aws_vpc.cloudtictactoe_server_vpc.id
+  }
+
+  setting {
+    namespace = "aws:ec2:vpc"
+    name = "Subnets"
+    value = aws_subnet.cloudtictactoe_server_subnet1.id
+  }
+
+  setting {
+    namespace = "aws:ec2:vpc"
+    name = "ELBSubnets"
+    value = aws_subnet.cloudtictactoe_server_subnet1.id
+  }
+
+  setting {
+    namespace = "aws:ec2:vpc"
+    name = "ELBScheme"
+    value = "internetFacing"
+  }
+
+  # setting {
+  #   namespace = "aws:elbv2:loadbalancer"
+  #   name = "SecurityGroups"
+  #   value = "${aws_security_group.cloudtictactoe_server_sg_http.id},${aws_security_group.cloudtictactoe_server_sg_ssh.id}"
+  # }
+
+  # setting {
+  #   namespace = "aws:elasticbeanstalk:environment"
+  #   name = "EnvironmentType"
+  #   value = "LoadBalanced"
+  # }
+
+  # setting {
+  #   namespace = "aws:elasticbeanstalk:environment"
+  #   name = "LoadBalancerType"
+  #   value = "application"
+  # }
+
+  setting {
+    namespace = "aws:ec2:vpc"
+    name = "AssociatePublicIpAddress"
+    value = "true"
   }
 }
