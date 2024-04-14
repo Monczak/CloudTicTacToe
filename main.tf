@@ -107,91 +107,117 @@ resource "aws_security_group" "cloudtictactoe_server_sg_ssh" {
   }
 }
 
-resource "aws_s3_bucket" "cloudtictactoe_server_bucket" {
-  bucket = "cloudtictactoe-bucket-1"
-  
-  tags = {
-    Name = "Cloud Tic Tac Toe S3 Bucket"
-  }
+resource "aws_ecs_cluster" "cloudtictactoe_cluster" {
+  name = "cloudtictactoe-cluster"
 }
 
-resource "aws_s3_object" "cloudtictactoe_server_source_bundle" {
-  bucket = aws_s3_bucket.cloudtictactoe_server_bucket.id
-  key = "source-bundle.zip"
-  source = "source-bundle.zip"
-  etag = filemd5("source-bundle.zip")
+resource "aws_ecs_task_definition" "cloudtictactoe_task" {
+  family = "cloudtictactoe-task"
+  container_definitions = jsonencode([
+    {
+      name = "cloudtictactoe-frontend"
+      image = "docker.io/monczak/cloudtictactoe-frontend-fargate:latest"
+      portMappings = [
+        {
+          containerPort = 8002
+          hostPort = 8002
+        }
+      ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-create-group" = "true"
+          "awslogs-group" = "fargate-logs-test"
+          "awslogs-region" = "us-east-1"
+          "awslogs-stream-prefix" = "ecs"
+        }
+      }
+    },
+    {
+      name = "cloudtictactoe-backend"
+      image = "docker.io/monczak/cloudtictactoe-backend-fargate:latest"
+      portMappings = [
+        {
+          containerPort = 8001
+          hostPort = 8001
+        }
+      ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-create-group" = "true"
+          "awslogs-group" = "fargate-logs-test"
+          "awslogs-region" = "us-east-1"
+          "awslogs-stream-prefix" = "ecs"
+        }
+      }
+    },
+    {
+      name = "cloudtictactoe-web"
+      image = "docker.io/monczak/cloudtictactoe-web-fargate:latest"
+      portMappings = [
+        {
+          containerPort = 80
+          hostPort = 80
+        }
+      ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-create-group" = "true"
+          "awslogs-group" = "fargate-logs-test"
+          "awslogs-region" = "us-east-1"
+          "awslogs-stream-prefix" = "ecs"
+        }
+      }
+    },
+  ])
+
+  network_mode = "awsvpc"
+  requires_compatibilities = [ "FARGATE" ]
+  cpu = "256"
+  memory = "0.5GB"
+
+  execution_role_arn = "arn:aws:iam::854270513909:role/LabRole"
 }
 
-resource "aws_elastic_beanstalk_application" "cloudtictactoe_app" {
-  name = "Cloud Tic Tac Toe"
-  description = "Cloud Tic Tac Toe Application"
-}
+# resource "aws_lb_target_group" "cloudtictactoe_target_group" {
+#   name = "cloudtictactoe-target-group"
+#   port = 80
+#   protocol = "TCP"
+#   vpc_id = aws_vpc.cloudtictactoe_server_vpc.id
+#   target_type = "ip"
 
-resource "aws_elastic_beanstalk_application_version" "cloudtictactoe_app_version" {
-  name = "v1.0.0"
-  application = aws_elastic_beanstalk_application.cloudtictactoe_app.name
-  description = "Cloud Tic Tac Toe Application Version 1.0.0"
-  bucket = aws_s3_bucket.cloudtictactoe_server_bucket.id
-  key = aws_s3_object.cloudtictactoe_server_source_bundle.id
-}
+#   health_check {
+#     path = "/"
+#     protocol = "HTTP"
+#   }
+# }
 
-resource "aws_elastic_beanstalk_environment" "cloudtictactoe_env" {
-  name = "CloudTicTacToe-env"
-  application = aws_elastic_beanstalk_application.cloudtictactoe_app.name
-  version_label = aws_elastic_beanstalk_application_version.cloudtictactoe_app_version.name
-  solution_stack_name = "64bit Amazon Linux 2 v3.8.0 running Docker"
+# resource "aws_lb_listener" "cloudtictactoe_listener" {
+#   load_balancer_arn = aws_lb.cloudtictactoe_lb.arn
+#   port = 80
+#   protocol = "TCP"
 
-  setting {
-    namespace = "aws:autoscaling:launchconfiguration"
-    name = "IamInstanceProfile"
-    value = "LabInstanceProfile"
-  }
+#   default_action {
+#     type = "forward"
+#     target_group_arn = aws_lb_target_group.cloudtictactoe_target_group.arn
+#   }
+# }
 
-  setting {
-    namespace = "aws:ec2:vpc"
-    name = "VPCId"
-    value = aws_vpc.cloudtictactoe_server_vpc.id
-  }
+resource "aws_ecs_service" "cloudtictactoe_service" {
+  name = "cloudtictactoe-service"
+  cluster = aws_ecs_cluster.cloudtictactoe_cluster.id
+  task_definition = aws_ecs_task_definition.cloudtictactoe_task.arn
+  desired_count = 1
+  launch_type = "FARGATE"
 
-  setting {
-    namespace = "aws:ec2:vpc"
-    name = "Subnets"
-    value = aws_subnet.cloudtictactoe_server_subnet1.id
-  }
+  deployment_minimum_healthy_percent = 0
+  deployment_maximum_percent = 100
 
-  setting {
-    namespace = "aws:ec2:vpc"
-    name = "ELBSubnets"
-    value = aws_subnet.cloudtictactoe_server_subnet1.id
-  }
-
-  setting {
-    namespace = "aws:ec2:vpc"
-    name = "ELBScheme"
-    value = "internetFacing"
-  }
-
-  setting {
-    namespace = "aws:elbv2:loadbalancer"
-    name = "SecurityGroups"
-    value = "${aws_security_group.cloudtictactoe_server_sg_http.id},${aws_security_group.cloudtictactoe_server_sg_ssh.id}"
-  }
-
-  setting {
-    namespace = "aws:elbv2:listener:80"
-    name = "ListenerProtocol"
-    value = "TCP"
-  }
-
-  setting {
-    namespace = "aws:elbv2:listener:80"
-    name = "InstanceProtocol"
-    value = "TCP"
-  }
-
-  setting {
-    namespace = "aws:ec2:vpc"
-    name = "AssociatePublicIpAddress"
-    value = "true"
+  network_configuration {
+    assign_public_ip = true
+    security_groups = [ aws_security_group.cloudtictactoe_server_sg_http.id ]
+    subnets = [ aws_subnet.cloudtictactoe_server_subnet1.id ]
   }
 }
