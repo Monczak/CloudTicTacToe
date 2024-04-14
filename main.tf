@@ -171,23 +171,23 @@ resource "aws_elastic_beanstalk_environment" "cloudtictactoe_env" {
     value = "internetFacing"
   }
 
-  # setting {
-  #   namespace = "aws:elbv2:loadbalancer"
-  #   name = "SecurityGroups"
-  #   value = "${aws_security_group.cloudtictactoe_server_sg_http.id},${aws_security_group.cloudtictactoe_server_sg_ssh.id}"
-  # }
+  setting {
+    namespace = "aws:elbv2:loadbalancer"
+    name = "SecurityGroups"
+    value = "${aws_security_group.cloudtictactoe_server_sg_http.id},${aws_security_group.cloudtictactoe_server_sg_ssh.id}"
+  }
 
-  # setting {
-  #   namespace = "aws:elasticbeanstalk:environment"
-  #   name = "EnvironmentType"
-  #   value = "LoadBalanced"
-  # }
+  setting {
+    namespace = "aws:elbv2:listener:80"
+    name = "ListenerProtocol"
+    value = "TCP"
+  }
 
-  # setting {
-  #   namespace = "aws:elasticbeanstalk:environment"
-  #   name = "LoadBalancerType"
-  #   value = "application"
-  # }
+  setting {
+    namespace = "aws:elbv2:listener:80"
+    name = "InstanceProtocol"
+    value = "TCP"
+  }
 
   setting {
     namespace = "aws:ec2:vpc"
