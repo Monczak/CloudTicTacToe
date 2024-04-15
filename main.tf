@@ -111,6 +111,22 @@ resource "aws_ecs_cluster" "cloudtictactoe_cluster" {
   name = "cloudtictactoe-cluster"
 }
 
+resource "aws_cloudwatch_log_group" "cloudtictactoe_fargate_log_group" {
+  name = "fargate-logs"
+}
+
+variable "aws_ecs_log_configuration" {
+  default = {
+    logDriver = "awslogs"
+    options = {
+      "awslogs-create-group" = "true"
+      "awslogs-group" = "fargate-logs"
+      "awslogs-region" = "us-east-1"
+      "awslogs-stream-prefix" = "ecs"
+    }
+  }
+}
+
 resource "aws_ecs_task_definition" "cloudtictactoe_task" {
   family = "cloudtictactoe-task"
   container_definitions = jsonencode([
@@ -119,19 +135,11 @@ resource "aws_ecs_task_definition" "cloudtictactoe_task" {
       image = "docker.io/monczak/cloudtictactoe-frontend-fargate:latest"
       portMappings = [
         {
-          containerPort = 8002
-          hostPort = 8002
+          containerPort = 8000
+          hostPort = 8000
         }
       ]
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          "awslogs-create-group" = "true"
-          "awslogs-group" = "fargate-logs-test"
-          "awslogs-region" = "us-east-1"
-          "awslogs-stream-prefix" = "ecs"
-        }
-      }
+      logConfiguration = var.aws_ecs_log_configuration
     },
     {
       name = "cloudtictactoe-backend"
@@ -142,15 +150,7 @@ resource "aws_ecs_task_definition" "cloudtictactoe_task" {
           hostPort = 8001
         }
       ]
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          "awslogs-create-group" = "true"
-          "awslogs-group" = "fargate-logs-test"
-          "awslogs-region" = "us-east-1"
-          "awslogs-stream-prefix" = "ecs"
-        }
-      }
+      logConfiguration = var.aws_ecs_log_configuration
     },
     {
       name = "cloudtictactoe-web"
@@ -161,15 +161,7 @@ resource "aws_ecs_task_definition" "cloudtictactoe_task" {
           hostPort = 80
         }
       ]
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          "awslogs-create-group" = "true"
-          "awslogs-group" = "fargate-logs-test"
-          "awslogs-region" = "us-east-1"
-          "awslogs-stream-prefix" = "ecs"
-        }
-      }
+      logConfiguration = var.aws_ecs_log_configuration
     },
   ])
 
@@ -180,30 +172,6 @@ resource "aws_ecs_task_definition" "cloudtictactoe_task" {
 
   execution_role_arn = "arn:aws:iam::854270513909:role/LabRole"
 }
-
-# resource "aws_lb_target_group" "cloudtictactoe_target_group" {
-#   name = "cloudtictactoe-target-group"
-#   port = 80
-#   protocol = "TCP"
-#   vpc_id = aws_vpc.cloudtictactoe_server_vpc.id
-#   target_type = "ip"
-
-#   health_check {
-#     path = "/"
-#     protocol = "HTTP"
-#   }
-# }
-
-# resource "aws_lb_listener" "cloudtictactoe_listener" {
-#   load_balancer_arn = aws_lb.cloudtictactoe_lb.arn
-#   port = 80
-#   protocol = "TCP"
-
-#   default_action {
-#     type = "forward"
-#     target_group_arn = aws_lb_target_group.cloudtictactoe_target_group.arn
-#   }
-# }
 
 resource "aws_ecs_service" "cloudtictactoe_service" {
   name = "cloudtictactoe-service"
