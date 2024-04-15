@@ -176,11 +176,16 @@ resource "aws_elastic_beanstalk_environment" "cloudtictactoe_env" {
     name = "SecurityGroups"
     value = "${aws_security_group.cloudtictactoe_server_sg_http.id},${aws_security_group.cloudtictactoe_server_sg_ssh.id}"
   }
-  
-  # This doesn't seem to do anything for some reason?
+
   setting {
-    namespace = "aws:elb:listener:default"
-    name = "Protocol"
+    namespace = "aws:elb:listener:80"
+    name = "ListenerProtocol"
+    value = "TCP"
+  }
+
+  setting {
+    namespace = "aws:elb:listener:80"
+    name = "InstanceProtocol"
     value = "TCP"
   }
 
