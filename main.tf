@@ -136,7 +136,7 @@ resource "aws_elastic_beanstalk_application_version" "cloudtictactoe_app_version
 }
 
 resource "aws_elastic_beanstalk_environment" "cloudtictactoe_env" {
-  name = "CloudTicTacToe-env"
+  name = "cloudtictactoe-env"
   application = aws_elastic_beanstalk_application.cloudtictactoe_app.name
   version_label = aws_elastic_beanstalk_application_version.cloudtictactoe_app_version.name
   solution_stack_name = "64bit Amazon Linux 2 v3.8.0 running Docker"
@@ -176,16 +176,11 @@ resource "aws_elastic_beanstalk_environment" "cloudtictactoe_env" {
     name = "SecurityGroups"
     value = "${aws_security_group.cloudtictactoe_server_sg_http.id},${aws_security_group.cloudtictactoe_server_sg_ssh.id}"
   }
-
+  
+  # This doesn't seem to do anything for some reason?
   setting {
-    namespace = "aws:elbv2:listener:80"
-    name = "ListenerProtocol"
-    value = "TCP"
-  }
-
-  setting {
-    namespace = "aws:elbv2:listener:80"
-    name = "InstanceProtocol"
+    namespace = "aws:elb:listener:default"
+    name = "Protocol"
     value = "TCP"
   }
 
