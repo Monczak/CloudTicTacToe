@@ -1,3 +1,6 @@
 #!/bin/bash
 
-zip -r source-bundle.zip backend frontend nginx docker-compose.yml
+SOURCE_BUNDLE_PATH=source-bundle.zip
+
+zip -r "$SOURCE_BUNDLE_PATH" backend frontend nginx docker-compose.yml > /dev/null
+echo "{\"md5\":\"$(md5sum "$SOURCE_BUNDLE_PATH" | awk '{ print $1 }')\"}"
