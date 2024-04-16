@@ -1,118 +1,17 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = ">= 5.43.0"
-    }
-  }
-
-  required_version = ">= 1.2.0"
-}
-
-provider "aws" {
-  region = "us-east-1"
-}
-
-resource "aws_vpc" "cloudtictactoe_server_vpc" {
-  cidr_block           = "10.0.0.0/16"
-  enable_dns_hostnames = true
-
-  tags = {
-    Name = "Cloud Tic Tac Toe VPC"
-  }
-}
-
-resource "aws_subnet" "cloudtictactoe_server_subnet1" {
-  vpc_id     = aws_vpc.cloudtictactoe_server_vpc.id
-  cidr_block = "10.0.1.0/24"
-
-  tags = {
-    Name = "Cloud Tic Tac Toe Subnet 1"
-  }
-}
-
-resource "aws_internet_gateway" "cloudtictactoe_server_gw" {
-  vpc_id = aws_vpc.cloudtictactoe_server_vpc.id
-
-  tags = {
-    Name = "Cloud Tic Tac Toe Internet Gateway"
-  }
-}
-
-resource "aws_route_table" "cloudtictactoe_server_rt" {
-  vpc_id = aws_vpc.cloudtictactoe_server_vpc.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.cloudtictactoe_server_gw.id
-  }
-
-  tags = {
-    Name = "Cloud Tic Tac Toe Route Table"
-  }
-}
-
-resource "aws_route_table_association" "cloudtictactoe_server_rta" {
-  subnet_id      = aws_subnet.cloudtictactoe_server_subnet1.id
-  route_table_id = aws_route_table.cloudtictactoe_server_rt.id
-}
-
-resource "aws_security_group" "cloudtictactoe_server_sg_http" {
-  name        = "cloudtictactoe-server-sg-http"
-  description = "Allows HTTP to web server"
-  vpc_id      = aws_vpc.cloudtictactoe_server_vpc.id
-
-  ingress {
-    description = "HTTP ingress"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "Cloud Tic Tac Toe HTTP Security Group"
-  }
-}
-
-resource "aws_security_group" "cloudtictactoe_server_sg_ssh" {
-  name        = "cloudtictactoe-server-sg-ssh"
-  description = "Allows SSH to web server"
-  vpc_id      = aws_vpc.cloudtictactoe_server_vpc.id
-
-  ingress {
-    description = "SSH ingress"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "Cloud Tic Tac Toe SSH Security Group"
-  }
-}
-
 resource "aws_ecs_cluster" "cloudtictactoe_cluster" {
   name = "cloudtictactoe-cluster"
+
+  tags = {
+    Name = "Cloud Tic Tac Toe Cluster"
+  }
 }
 
 resource "aws_cloudwatch_log_group" "cloudtictactoe_fargate_log_group" {
   name = "fargate-logs"
+
+  tags = {
+    Name = "CloudWatch Fargate Logs"
+  }
 }
 
 variable "aws_ecs_log_configuration" {
@@ -171,6 +70,11 @@ resource "aws_ecs_task_definition" "cloudtictactoe_task" {
   memory = "0.5GB"
 
   execution_role_arn = "arn:aws:iam::854270513909:role/LabRole"
+
+  tags = {
+    Name = "Cloud Tic Tac Toe Task Definition"
+    Description = "Sets up the 3 Docker containers needed to run Cloud Tic Tac Toe."
+  }
 }
 
 resource "aws_ecs_service" "cloudtictactoe_service" {
@@ -187,5 +91,9 @@ resource "aws_ecs_service" "cloudtictactoe_service" {
     assign_public_ip = true
     security_groups = [ aws_security_group.cloudtictactoe_server_sg_http.id ]
     subnets = [ aws_subnet.cloudtictactoe_server_subnet1.id ]
+  }
+
+  tags = {
+    Name = "Cloud Tic Tac Toe Service"
   }
 }
