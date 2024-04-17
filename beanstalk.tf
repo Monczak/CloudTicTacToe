@@ -38,12 +38,6 @@ resource "aws_elastic_beanstalk_environment" "cloudtictactoe_env" {
 
   setting {
     namespace = "aws:ec2:vpc"
-    name      = "ELBSubnets"
-    value     = aws_subnet.cloudtictactoe_server_subnet1.id
-  }
-
-  setting {
-    namespace = "aws:ec2:vpc"
     name      = "ELBScheme"
     value     = "internetFacing"
   }
@@ -51,7 +45,7 @@ resource "aws_elastic_beanstalk_environment" "cloudtictactoe_env" {
   setting {
     namespace = "aws:elbv2:loadbalancer"
     name      = "SecurityGroups"
-    value     = "${aws_security_group.cloudtictactoe_server_sg_http.id},${aws_security_group.cloudtictactoe_server_sg_ssh.id}"
+    value     = "${aws_security_group.cloudtictactoe_server_sg_http.id}"
   }
 
   setting {
