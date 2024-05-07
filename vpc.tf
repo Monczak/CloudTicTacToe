@@ -1,22 +1,3 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = ">= 5.43.0"
-    }
-  }
-
-  required_version = ">= 1.2.0"
-}
-
-provider "aws" {
-  region = "us-east-1"
-}
-
-data "template_file" "setup-ec2-script" {
-  template = file("setup-ec2.sh")
-}
-
 resource "aws_vpc" "cloudtictactoe_server_vpc" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_hostnames = true
@@ -63,13 +44,21 @@ resource "aws_route_table_association" "cloudtictactoe_server_rta" {
 
 resource "aws_security_group" "cloudtictactoe_server_sg_http" {
   name        = "cloudtictactoe-server-sg-http"
-  description = "Allows HTTP to web server"
+  description = "Allows HTTP and HTTPS to web server"
   vpc_id      = aws_vpc.cloudtictactoe_server_vpc.id
 
   ingress {
     description = "HTTP ingress"
     from_port   = 80
     to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "HTTPS ingress"
+    from_port   = 443
+    to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -108,22 +97,5 @@ resource "aws_security_group" "cloudtictactoe_server_sg_ssh" {
 
   tags = {
     Name = "Cloud Tic Tac Toe SSH Security Group"
-  }
-}
-
-resource "aws_instance" "cloudtictactoe_server" {
-  ami           = "ami-0c101f26f147fa7fd" # Amazon Linux 2023 on us-east-1
-  instance_type = "t2.micro"
-  subnet_id     = aws_subnet.cloudtictactoe_server_subnet1.id
-  vpc_security_group_ids = [
-    aws_security_group.cloudtictactoe_server_sg_http.id,
-    aws_security_group.cloudtictactoe_server_sg_ssh.id
-  ]
-  associate_public_ip_address = true
-
-  user_data = data.template_file.setup-ec2-script.rendered
-
-  tags = {
-    Name = "Cloud Tic Tac Toe Server Instance"
   }
 }
