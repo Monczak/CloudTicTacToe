@@ -7,11 +7,15 @@ services:
       - backend
     networks:
       - nginx-net
+    env_file:
+      - ./.env
 
   backend:
     build: ./backend
     networks:
       - nginx-net
+    env_file:
+      - ./.env
 
   web:
     build: ./nginx
