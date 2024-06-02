@@ -1,7 +1,7 @@
 data "template_file" "setup-ec2-script" {
   template = file("setup-ec2.sh")
   vars = {
-    COGNITO_CLIENT_ID = local.envs["COGNITO_CLIENT_ID"]
+    COGNITO_CLIENT_ID = aws_cognito_user_pool_client.cloudtictactoe_cognito_client.id
     FLASK_SECRET_KEY = local.envs["FLASK_SECRET_KEY"]
   }
 }
