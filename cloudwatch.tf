@@ -2,7 +2,7 @@ resource "aws_sns_topic" "cpu_alarm_topic" {
   name = "cpu-alarm-topic"
 }
 
-resource "aws_sns_topic_subscription" "cpu_alarm_subscription" { 
+resource "aws_sns_topic_subscription" "cpu_alarm_subscription" {
   topic_arn = aws_sns_topic.cpu_alarm_topic.arn
   protocol  = "email"
   endpoint  = local.envs["CLOUDWATCH_ALARM_ENDPOINT"]
@@ -10,7 +10,7 @@ resource "aws_sns_topic_subscription" "cpu_alarm_subscription" {
 
 resource "aws_cloudwatch_metric_alarm" "cpu_utilization_alarm" {
   count = var.use_autoscaling ? 0 : 1
-  
+
   alarm_name          = "high-cpu-utilization"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = "2"
@@ -32,7 +32,7 @@ data "external" "make_lambda" {
 }
 
 resource "aws_lambda_function" "check_running_instances" {
-  depends_on = [ data.external.make_lambda ]
+  depends_on = [data.external.make_lambda]
 
   filename         = ".tmp/check_running_instances.zip"
   function_name    = "CheckRunningInstances"
@@ -42,18 +42,18 @@ resource "aws_lambda_function" "check_running_instances" {
   source_code_hash = filebase64sha256(".tmp/check_running_instances.zip")
 }
 
-resource "aws_cloudwatch_event_rule" "every_minute" {  
-  name        = "every_minute"
-  description = "Fires every minute"
+resource "aws_cloudwatch_event_rule" "every_minute" {
+  name                = "every_minute"
+  description         = "Fires every minute"
   schedule_expression = "rate(1 minute)"
 }
 
-resource "aws_cloudwatch_event_target" "check_running_instances_target" {  
+resource "aws_cloudwatch_event_target" "check_running_instances_target" {
   rule = aws_cloudwatch_event_rule.every_minute.name
   arn  = aws_lambda_function.check_running_instances.arn
 }
 
-resource "aws_lambda_permission" "allow_cloudwatch_to_call_lambda" { 
+resource "aws_lambda_permission" "allow_cloudwatch_to_call_lambda" {
   statement_id  = "AllowExecutionFromCloudWatch"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.check_running_instances.function_name
@@ -61,11 +61,11 @@ resource "aws_lambda_permission" "allow_cloudwatch_to_call_lambda" {
   source_arn    = aws_cloudwatch_event_rule.every_minute.arn
 }
 
-resource "aws_sns_topic" "instance_count_alarm_topic" {  
+resource "aws_sns_topic" "instance_count_alarm_topic" {
   name = "instance-count-alarm-topic"
 }
 
-resource "aws_sns_topic_subscription" "instance_count_alarm_subscription" {  
+resource "aws_sns_topic_subscription" "instance_count_alarm_subscription" {
   topic_arn = aws_sns_topic.instance_count_alarm_topic.arn
   protocol  = "email"
   endpoint  = local.envs["CLOUDWATCH_ALARM_ENDPOINT"]

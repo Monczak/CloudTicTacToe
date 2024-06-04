@@ -40,7 +40,7 @@
 
 resource "aws_launch_template" "cloudtictactoe_server" {
   count = var.use_autoscaling ? 1 : 0
-  
+
   name_prefix   = "cloudtictactoe-server-"
   image_id      = "ami-0c101f26f147fa7fd" # Amazon Linux 2023 on us-east-1
   instance_type = "t2.micro"
@@ -48,7 +48,7 @@ resource "aws_launch_template" "cloudtictactoe_server" {
   network_interfaces {
     associate_public_ip_address = true
     subnet_id                   = aws_subnet.cloudtictactoe_server_subnet1.id
-    security_groups             = [
+    security_groups = [
       aws_security_group.cloudtictactoe_server_sg_http.id,
       aws_security_group.cloudtictactoe_server_sg_ssh.id
     ]
@@ -71,12 +71,12 @@ resource "aws_launch_template" "cloudtictactoe_server" {
 
 resource "aws_autoscaling_group" "cloudtictactoe_asg" {
   count = var.use_autoscaling ? 1 : 0
-  
-  desired_capacity     = var.desired_capacity
-  max_size             = var.max_size
-  min_size             = var.min_size
-  vpc_zone_identifier  = [aws_subnet.cloudtictactoe_server_subnet1.id]
-  
+
+  desired_capacity    = var.desired_capacity
+  max_size            = var.max_size
+  min_size            = var.min_size
+  vpc_zone_identifier = [aws_subnet.cloudtictactoe_server_subnet1.id]
+
   launch_template {
     id      = aws_launch_template.cloudtictactoe_server[0].id
     version = "$Latest"
@@ -90,16 +90,25 @@ resource "aws_autoscaling_group" "cloudtictactoe_asg" {
     propagate_at_launch = true
   }
 
-  health_check_type           = "EC2"
-  health_check_grace_period   = 300
+  health_check_type         = "EC2"
+  health_check_grace_period = 300
 
-  enabled_metrics = ["GroupDesiredCapacity", "GroupInServiceInstances", "GroupMinSize", "GroupMaxSize", "GroupPendingInstances", "GroupStandbyInstances", "GroupTerminatingInstances", "GroupTotalInstances"]
+  enabled_metrics = [
+    "GroupDesiredCapacity",
+    "GroupInServiceInstances",
+    "GroupMinSize",
+    "GroupMaxSize",
+    "GroupPendingInstances",
+    "GroupStandbyInstances",
+    "GroupTerminatingInstances",
+    "GroupTotalInstances"
+  ]
 }
 
 
 resource "aws_autoscaling_policy" "scale_out" {
   count = var.use_autoscaling ? 1 : 0
-  
+
   name                   = "scale-out"
   scaling_adjustment     = 1
   adjustment_type        = "ChangeInCapacity"
@@ -109,7 +118,7 @@ resource "aws_autoscaling_policy" "scale_out" {
 
 resource "aws_autoscaling_policy" "scale_in" {
   count = var.use_autoscaling ? 1 : 0
-  
+
   name                   = "scale-in"
   scaling_adjustment     = -1
   adjustment_type        = "ChangeInCapacity"
@@ -119,7 +128,7 @@ resource "aws_autoscaling_policy" "scale_in" {
 
 resource "aws_cloudwatch_metric_alarm" "high_cpu_alarm" {
   count = var.use_autoscaling ? 1 : 0
-  
+
   alarm_name          = "high-cpu-utilization"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = "2"
@@ -132,12 +141,12 @@ resource "aws_cloudwatch_metric_alarm" "high_cpu_alarm" {
   dimensions = {
     AutoScalingGroupName = aws_autoscaling_group.cloudtictactoe_asg[0].name
   }
-  alarm_actions       = [aws_autoscaling_policy.scale_out[0].arn, aws_sns_topic.cpu_alarm_topic.arn]
+  alarm_actions = [aws_autoscaling_policy.scale_out[0].arn, aws_sns_topic.cpu_alarm_topic.arn]
 }
 
 resource "aws_cloudwatch_metric_alarm" "low_cpu_alarm" {
   count = var.use_autoscaling ? 1 : 0
-  
+
   alarm_name          = "low-cpu-utilization"
   comparison_operator = "LessThanThreshold"
   evaluation_periods  = "2"
@@ -150,5 +159,5 @@ resource "aws_cloudwatch_metric_alarm" "low_cpu_alarm" {
   dimensions = {
     AutoScalingGroupName = aws_autoscaling_group.cloudtictactoe_asg[0].name
   }
-  alarm_actions       = [aws_autoscaling_policy.scale_in[0].arn]
+  alarm_actions = [aws_autoscaling_policy.scale_in[0].arn]
 }
