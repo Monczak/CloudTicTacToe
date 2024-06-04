@@ -132,7 +132,7 @@ resource "aws_cloudwatch_metric_alarm" "high_cpu_alarm" {
   dimensions = {
     AutoScalingGroupName = aws_autoscaling_group.cloudtictactoe_asg[0].name
   }
-  alarm_actions       = [aws_autoscaling_policy.scale_out[0].arn]
+  alarm_actions       = [aws_autoscaling_policy.scale_out[0].arn, aws_sns_topic.cpu_alarm_topic.arn]
 }
 
 resource "aws_cloudwatch_metric_alarm" "low_cpu_alarm" {
