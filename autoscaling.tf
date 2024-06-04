@@ -50,7 +50,6 @@ resource "aws_autoscaling_group" "cloudtictactoe_asg" {
   health_check_type           = "EC2"
   health_check_grace_period   = 300
 
-  # Enabling metrics collection for the ASG
   enabled_metrics = ["GroupDesiredCapacity", "GroupInServiceInstances", "GroupMinSize", "GroupMaxSize", "GroupPendingInstances", "GroupStandbyInstances", "GroupTerminatingInstances", "GroupTotalInstances"]
 }
 

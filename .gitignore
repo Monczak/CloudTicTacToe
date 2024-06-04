@@ -34,3 +34,7 @@ override.tf.json
 terraform.rc
 
 .env
+
+# AWS Lambda zips 
+lambda/*.zip
+.tmp/
