@@ -10,6 +10,7 @@ resource "aws_vpc" "cloudtictactoe_server_vpc" {
 resource "aws_subnet" "cloudtictactoe_server_subnet1" {
   vpc_id     = aws_vpc.cloudtictactoe_server_vpc.id
   cidr_block = "10.0.1.0/24"
+  availability_zone = "us-east-1a"
 
   tags = {
     Name = "Cloud Tic Tac Toe Subnet 1"
@@ -19,6 +20,7 @@ resource "aws_subnet" "cloudtictactoe_server_subnet1" {
 resource "aws_subnet" "cloudtictactoe_server_subnet2" {
   vpc_id     = aws_vpc.cloudtictactoe_server_vpc.id
   cidr_block = "10.0.2.0/24"
+  availability_zone = "us-east-1b"
 
   tags = {
     Name = "Cloud Tic Tac Toe Subnet 2"
