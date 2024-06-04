@@ -1,4 +1,6 @@
 resource "aws_launch_template" "cloudtictactoe_server" {
+  count = var.use_autoscaling ? 1 : 0
+  
   name_prefix   = "cloudtictactoe-server-"
   image_id      = "ami-0c101f26f147fa7fd" # Amazon Linux 2023 on us-east-1
   instance_type = "t2.micro"
@@ -28,12 +30,14 @@ resource "aws_launch_template" "cloudtictactoe_server" {
 
 
 resource "aws_autoscaling_group" "cloudtictactoe_asg" {
+  count = var.use_autoscaling ? 1 : 0
+  
   desired_capacity     = var.desired_capacity
   max_size             = var.max_size
   min_size             = var.min_size
   vpc_zone_identifier  = [aws_subnet.cloudtictactoe_server_subnet1.id]
   launch_template {
-    id      = aws_launch_template.cloudtictactoe_server.id
+    id      = aws_launch_template.cloudtictactoe_server[0].id
     version = "$Latest"
   }
 
@@ -52,22 +56,28 @@ resource "aws_autoscaling_group" "cloudtictactoe_asg" {
 
 
 resource "aws_autoscaling_policy" "scale_out" {
+  count = var.use_autoscaling ? 1 : 0
+  
   name                   = "scale-out"
   scaling_adjustment     = 1
   adjustment_type        = "ChangeInCapacity"
   cooldown               = 300
-  autoscaling_group_name = aws_autoscaling_group.cloudtictactoe_asg.name
+  autoscaling_group_name = aws_autoscaling_group.cloudtictactoe_asg[0].name
 }
 
 resource "aws_autoscaling_policy" "scale_in" {
+  count = var.use_autoscaling ? 1 : 0
+  
   name                   = "scale-in"
   scaling_adjustment     = -1
   adjustment_type        = "ChangeInCapacity"
   cooldown               = 300
-  autoscaling_group_name = aws_autoscaling_group.cloudtictactoe_asg.name
+  autoscaling_group_name = aws_autoscaling_group.cloudtictactoe_asg[0].name
 }
 
 resource "aws_cloudwatch_metric_alarm" "high_cpu_alarm" {
+  count = var.use_autoscaling ? 1 : 0
+  
   alarm_name          = "high-cpu-utilization"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = "2"
@@ -76,14 +86,16 @@ resource "aws_cloudwatch_metric_alarm" "high_cpu_alarm" {
   period              = "60"
   statistic           = "Average"
   threshold           = "80"
-  alarm_description   = "This alarm triggers when CPU utilization is high"
+  alarm_description   = "Triggers when CPU utilization is high and scales out"
   dimensions = {
-    AutoScalingGroupName = aws_autoscaling_group.cloudtictactoe_asg.name
+    AutoScalingGroupName = aws_autoscaling_group.cloudtictactoe_asg[0].name
   }
-  alarm_actions       = [aws_autoscaling_policy.scale_out.arn]
+  alarm_actions       = [aws_autoscaling_policy.scale_out[0].arn]
 }
 
 resource "aws_cloudwatch_metric_alarm" "low_cpu_alarm" {
+  count = var.use_autoscaling ? 1 : 0
+  
   alarm_name          = "low-cpu-utilization"
   comparison_operator = "LessThanThreshold"
   evaluation_periods  = "2"
@@ -92,9 +104,9 @@ resource "aws_cloudwatch_metric_alarm" "low_cpu_alarm" {
   period              = "60"
   statistic           = "Average"
   threshold           = "20"
-  alarm_description   = "This alarm triggers when CPU utilization is low"
+  alarm_description   = "Triggers when CPU utilization is low and scales in"
   dimensions = {
-    AutoScalingGroupName = aws_autoscaling_group.cloudtictactoe_asg.name
+    AutoScalingGroupName = aws_autoscaling_group.cloudtictactoe_asg[0].name
   }
-  alarm_actions       = [aws_autoscaling_policy.scale_in.arn]
+  alarm_actions       = [aws_autoscaling_policy.scale_in[0].arn]
 }

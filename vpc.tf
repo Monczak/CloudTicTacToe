@@ -16,6 +16,15 @@ resource "aws_subnet" "cloudtictactoe_server_subnet1" {
   }
 }
 
+resource "aws_subnet" "cloudtictactoe_server_subnet2" {
+  vpc_id     = aws_vpc.cloudtictactoe_server_vpc.id
+  cidr_block = "10.0.2.0/24"
+
+  tags = {
+    Name = "Cloud Tic Tac Toe Subnet 2"
+  }
+}
+
 resource "aws_internet_gateway" "cloudtictactoe_server_gw" {
   vpc_id = aws_vpc.cloudtictactoe_server_vpc.id
 
@@ -37,8 +46,13 @@ resource "aws_route_table" "cloudtictactoe_server_rt" {
   }
 }
 
-resource "aws_route_table_association" "cloudtictactoe_server_rta" {
+resource "aws_route_table_association" "cloudtictactoe_server_rta1" {
   subnet_id      = aws_subnet.cloudtictactoe_server_subnet1.id
+  route_table_id = aws_route_table.cloudtictactoe_server_rt.id
+}
+
+resource "aws_route_table_association" "cloudtictactoe_server_rta2" {
+  subnet_id      = aws_subnet.cloudtictactoe_server_subnet2.id
   route_table_id = aws_route_table.cloudtictactoe_server_rt.id
 }
 

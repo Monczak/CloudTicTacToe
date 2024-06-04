@@ -15,3 +15,9 @@ variable "max_size" {
   type        = number
   default     = 5
 }
+
+variable "use_autoscaling" {
+  description = "Setup EC2 autoscaling"
+  type        = bool
+  default     = false
+}
