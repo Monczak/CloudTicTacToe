@@ -27,9 +27,9 @@
 #   }
 # }
 
-# resource "aws_lb_listener" "http_listener" {
+# resource "aws_lb_listener" "https_listener" {
 #   load_balancer_arn = aws_lb.cloudtictactoe_alb.arn
-#   port              = "80"
+#   port              = "443"
 #   protocol          = "TCP"
 
 #   default_action {
@@ -91,18 +91,7 @@ resource "aws_autoscaling_group" "cloudtictactoe_asg" {
   }
 
   health_check_type         = "EC2"
-  health_check_grace_period = 300
-
-  enabled_metrics = [
-    "GroupDesiredCapacity",
-    "GroupInServiceInstances",
-    "GroupMinSize",
-    "GroupMaxSize",
-    "GroupPendingInstances",
-    "GroupStandbyInstances",
-    "GroupTerminatingInstances",
-    "GroupTotalInstances"
-  ]
+  health_check_grace_period = 30
 }
 
 
@@ -131,12 +120,12 @@ resource "aws_cloudwatch_metric_alarm" "high_cpu_alarm" {
 
   alarm_name          = "high-cpu-utilization"
   comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = "2"
+  evaluation_periods  = 2
   metric_name         = "CPUUtilization"
   namespace           = "AWS/EC2"
-  period              = "60"
+  period              = 300
   statistic           = "Average"
-  threshold           = "80"
+  threshold           = 80
   alarm_description   = "Triggers when CPU utilization is high and scales out"
   dimensions = {
     AutoScalingGroupName = aws_autoscaling_group.cloudtictactoe_asg[0].name
@@ -149,12 +138,12 @@ resource "aws_cloudwatch_metric_alarm" "low_cpu_alarm" {
 
   alarm_name          = "low-cpu-utilization"
   comparison_operator = "LessThanThreshold"
-  evaluation_periods  = "2"
+  evaluation_periods  = 2
   metric_name         = "CPUUtilization"
   namespace           = "AWS/EC2"
-  period              = "60"
+  period              = 300
   statistic           = "Average"
-  threshold           = "20"
+  threshold           = 20
   alarm_description   = "Triggers when CPU utilization is low and scales in"
   dimensions = {
     AutoScalingGroupName = aws_autoscaling_group.cloudtictactoe_asg[0].name

@@ -13,12 +13,12 @@ resource "aws_cloudwatch_metric_alarm" "cpu_utilization_alarm" {
 
   alarm_name          = "high-cpu-utilization"
   comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = "2"
+  evaluation_periods  = 2
   metric_name         = "CPUUtilization"
   namespace           = "AWS/EC2"
-  period              = "60"
+  period              = 60
   statistic           = "Average"
-  threshold           = "80"
+  threshold           = 80
   alarm_description   = "Monitors high CPU utilization"
   dimensions = {
     InstanceId = aws_instance.cloudtictactoe_server[0].id
@@ -74,12 +74,12 @@ resource "aws_sns_topic_subscription" "instance_count_alarm_subscription" {
 resource "aws_cloudwatch_metric_alarm" "running_instances_alarm" {
   alarm_name          = "no-running-instances"
   comparison_operator = "LessThanThreshold"
-  evaluation_periods  = "1"
+  evaluation_periods  = 1
   metric_name         = "RunningInstances"
   namespace           = "Custom"
-  period              = "60"
+  period              = 60
   statistic           = "Sum"
-  threshold           = "1"
+  threshold           = 1
   alarm_description   = "Triggers if no EC2 instances are running"
 
   alarm_actions = [aws_sns_topic.instance_count_alarm_topic.arn]
