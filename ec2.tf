@@ -26,3 +26,8 @@ resource "aws_instance" "cloudtictactoe_server" {
     Name = "Cloud Tic Tac Toe Server Instance"
   }
 }
+
+resource "aws_iam_instance_profile" "ec2_instance_profile" {
+  name = "ec2_instance_profile"
+  role = "LabRole"
+}

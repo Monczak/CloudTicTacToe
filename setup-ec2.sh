@@ -13,7 +13,7 @@ curl -SL https://github.com/docker/compose/releases/download/v2.26.0/docker-comp
 chmod +x /usr/local/bin/docker-compose
 
 # Clone repo
-git clone -b cloudwatch --recurse-submodules https://github.com/Monczak/cloudtictactoe /cloudtictactoe
+git clone -b avatars-db --recurse-submodules https://github.com/Monczak/cloudtictactoe /cloudtictactoe
 
 # Setup systemd service to run project on instance reboot
 cp /cloudtictactoe/cloudtictactoe.service /etc/systemd/system/cloudtictactoe.service
