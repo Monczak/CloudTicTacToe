@@ -23,6 +23,9 @@ systemctl enable cloudtictactoe
 # Setup environment variables
 echo COGNITO_CLIENT_ID=${COGNITO_CLIENT_ID} >> /cloudtictactoe/.env
 echo FLASK_SECRET_KEY=${FLASK_SECRET_KEY} >> /cloudtictactoe/.env
+echo DB_USERNAME=${DB_USERNAME} >> /cloudtictactoe/.env
+echo DB_PASSWORD=${DB_PASSWORD} >> /cloudtictactoe/.env
+echo DB_ENDPOINT=${DB_ENDPOINT} >> /cloudtictactoe/.env
 
 # Setup credentials (egregious)
 echo aws_access_key_id=${AWS_ACCESS_KEY} >> /cloudtictactoe/.env

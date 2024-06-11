@@ -2,6 +2,15 @@ resource "aws_s3_bucket" "cloudtictactoe_avatars" {
   bucket = "cloudtictactoe-avatars"
 }
 
+resource "aws_s3_bucket_public_access_block" "cloudtictactoe_avatars_pab" {
+  bucket = aws_s3_bucket.cloudtictactoe_avatars.id
+
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = false
+  restrict_public_buckets = false
+}
+
 resource "aws_s3_bucket_policy" "bucket_policy" {
   bucket = aws_s3_bucket.cloudtictactoe_avatars.id
 
@@ -22,4 +31,6 @@ resource "aws_s3_bucket_policy" "bucket_policy" {
       ]
     }
   )
+
+  depends_on = [ aws_s3_bucket_public_access_block.cloudtictactoe_avatars_pab ]
 }

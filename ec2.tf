@@ -7,6 +7,9 @@ data "template_file" "setup-ec2-script" {
   vars = {
     COGNITO_CLIENT_ID = aws_cognito_user_pool_client.cloudtictactoe_cognito_client.id
     FLASK_SECRET_KEY  = local.envs["FLASK_SECRET_KEY"]
+    DB_USERNAME       = local.envs["DB_USERNAME"]
+    DB_PASSWORD       = local.envs["DB_PASSWORD"]
+    DB_ENDPOINT       = aws_db_instance.cloudtictactoe_db.endpoint
     AWS_ACCESS_KEY    = data.external.get_credentials.result.access_key
     AWS_SECRET_KEY    = data.external.get_credentials.result.secret_key
     AWS_SESSION_TOKEN = data.external.get_credentials.result.session_token
@@ -32,4 +35,6 @@ resource "aws_instance" "cloudtictactoe_server" {
   tags = {
     Name = "Cloud Tic Tac Toe Server Instance"
   }
+
+  depends_on = [ aws_db_instance.cloudtictactoe_db ]
 }
