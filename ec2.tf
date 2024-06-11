@@ -1,8 +1,15 @@
+data "external" "get_credentials" {
+  program = ["bash", "${path.module}/get-credentials.sh"]
+}
+
 data "template_file" "setup-ec2-script" {
   template = file("setup-ec2.sh")
   vars = {
     COGNITO_CLIENT_ID = aws_cognito_user_pool_client.cloudtictactoe_cognito_client.id
     FLASK_SECRET_KEY  = local.envs["FLASK_SECRET_KEY"]
+    AWS_ACCESS_KEY    = data.external.get_credentials.result.access_key
+    AWS_SECRET_KEY    = data.external.get_credentials.result.secret_key
+    AWS_SESSION_TOKEN = data.external.get_credentials.result.session_token
   }
 }
 
@@ -25,9 +32,4 @@ resource "aws_instance" "cloudtictactoe_server" {
   tags = {
     Name = "Cloud Tic Tac Toe Server Instance"
   }
-}
-
-resource "aws_iam_instance_profile" "ec2_instance_profile" {
-  name = "ec2_instance_profile"
-  role = "LabRole"
 }

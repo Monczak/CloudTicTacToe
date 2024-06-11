@@ -24,5 +24,10 @@ systemctl enable cloudtictactoe
 echo COGNITO_CLIENT_ID=${COGNITO_CLIENT_ID} >> /cloudtictactoe/.env
 echo FLASK_SECRET_KEY=${FLASK_SECRET_KEY} >> /cloudtictactoe/.env
 
+# Setup credentials (egregious)
+echo aws_access_key_id=${AWS_ACCESS_KEY} >> /cloudtictactoe/.env
+echo aws_secret_access_key=${AWS_SECRET_KEY} >> /cloudtictactoe/.env
+echo aws_session_token=${AWS_SESSION_TOKEN} >> /cloudtictactoe/.env
+
 # Build images and run project
 /usr/local/bin/docker-compose -f /cloudtictactoe/docker-compose.yml up -d
