@@ -36,5 +36,5 @@ resource "aws_instance" "cloudtictactoe_server" {
     Name = "Cloud Tic Tac Toe Server Instance"
   }
 
-  depends_on = [ aws_db_instance.cloudtictactoe_db ]
+  depends_on = [aws_db_instance.cloudtictactoe_db]
 }

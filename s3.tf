@@ -11,7 +11,7 @@ resource "aws_s3_bucket_public_access_block" "cloudtictactoe_avatars_pab" {
   restrict_public_buckets = false
 }
 
-resource "aws_s3_bucket_policy" "bucket_policy" {
+resource "aws_s3_bucket_policy" "cloudtictactoe_avatars_bucket_policy" {
   bucket = aws_s3_bucket.cloudtictactoe_avatars.id
 
   policy = jsonencode(
@@ -32,5 +32,5 @@ resource "aws_s3_bucket_policy" "bucket_policy" {
     }
   )
 
-  depends_on = [ aws_s3_bucket_public_access_block.cloudtictactoe_avatars_pab ]
+  depends_on = [aws_s3_bucket_public_access_block.cloudtictactoe_avatars_pab]
 }
